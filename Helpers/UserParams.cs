@@ -3,18 +3,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace API.Helpers;
 
-public class UserParams
+public class UserParams : PaginationParms
 {
-    private const int MaxPageSize = 50;
-
-    public int PageNumber { get; set; } = 1;
-    private int pageSize = 10; 
-    public int PageSize
-    {
-        get => pageSize;
-        set => pageSize = (value > MaxPageSize) ? MaxPageSize : value;
-    }
-    
+   
     public string? Gender { get; set; }
     public string? CurrentUserName { get; set; }
     public int MinAge { get; set; } = 18;
