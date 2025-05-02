@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 
 namespace API.Data;
 
-public class MessageRepository(DataContext context, IMapper mapper) : IMessagesRepository
+public class MessageRepository(DataContext context, IMapper mapper) : IMessageRepository
 {
     public void AddGroup(Group group)
     {
@@ -72,31 +72,24 @@ public class MessageRepository(DataContext context, IMapper mapper) : IMessagesR
 
     public async Task<IEnumerable<MessageDto>> GetMessageThread(string currentUsername, string recipientUserName)
     {
-        var messages = await context.Messages
+        var query = context.Messages
             .Where(x => x.RecipientUsername == currentUsername && x.SenderUsername == recipientUserName && !x.RecipientDeleted
                 || x.RecipientUsername == recipientUserName && x.SenderUsername == currentUsername && !x.SenderDeleted)
             .OrderBy(x => x.MessageSent)
-            .ProjectTo<MessageDto>(mapper.ConfigurationProvider)
-            .ToListAsync();
+            .AsQueryable();
 
-        var unreadMessages = messages.Where(x => x.RecipientUsername == currentUsername && !x.DateRead.HasValue).ToList();
+        var unreadMessages = query.Where(x => x.RecipientUsername == currentUsername && !x.DateRead.HasValue).ToList();
 
         if (unreadMessages.Count != 0)
         {
             unreadMessages.ForEach(x => x.DateRead = DateTime.UtcNow);
-            await context.SaveChangesAsync();
         }
 
-        return messages;
+        return await query.ProjectTo<MessageDto>(mapper.ConfigurationProvider).ToListAsync();
     }
 
     public void RemoveConnection(Connection connection)
     {
         context.Connections.Remove(connection);
-    }
-
-    public async Task<bool> SaveAllAsync()
-    {
-        return await context.SaveChangesAsync() > 0;
     }
 }
