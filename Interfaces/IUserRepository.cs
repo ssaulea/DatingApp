@@ -13,6 +13,6 @@ public interface IUserRepository
     Task<AppUser?> GetUserByUsernameAsync(string userName);
 
     Task<PagedList<MemberDto>> GetMembers(UserParams userParams);
-    Task<MemberDto?> GetMember(string userName);
-
+    Task<MemberDto?> GetMemberAsync(string userName, bool isCurrentUser);
+    Task<AppUser?> GetUserByPhotoId(int photoId);
 }

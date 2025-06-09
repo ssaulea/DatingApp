@@ -16,7 +16,7 @@ namespace API.Controllers
         [HttpPost]
         public async Task<ActionResult<MessageDto>> CreateMessage(CreateMessageDto createMessageDto)
         {
-            var username = User.GetUserName();
+            var username = User.GetUsername();
             if (createMessageDto.RecipientUsername == username) return BadRequest("You cannot  message yourself");
 
             var sender = await unitOfWork.UserRepository.GetUserByUsernameAsync(username);
@@ -43,7 +43,7 @@ namespace API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<MessageDto>>> GetMessagesForUser([FromQuery] MessageParams messageParams)
         {
-            messageParams.Username = User.GetUserName();
+            messageParams.Username = User.GetUsername();
 
             var messages = await unitOfWork.MessageRepository.GetMessagesForUser(messageParams);
 
@@ -55,7 +55,7 @@ namespace API.Controllers
         [HttpGet("thread/{username}")]
         public async Task<ActionResult<IEnumerable<MessageDto>>> GetMessageThread([Required] string username)
         {
-            var currentUsername = User.GetUserName();
+            var currentUsername = User.GetUsername();
 
             return Ok(await unitOfWork.MessageRepository.GetMessageThread(currentUsername, username));
         }
@@ -63,7 +63,7 @@ namespace API.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(int id)
         {
-            var username = User.GetUserName();
+            var username = User.GetUsername();
             var message = await unitOfWork.MessageRepository.GetMessage(id);
             if (message == null) return BadRequest("Cannot delete this message");
 

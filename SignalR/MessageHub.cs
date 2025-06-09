@@ -17,13 +17,13 @@ public class MessageHub(IUnitOfWork unitOfWork, IMapper mapper, IHubContext<Pres
 
         if (Context.User == null || string.IsNullOrEmpty(otherUser)) 
             throw new Exception("Cannot join group");
-        var groupName = GetGroupName(Context.User.GetUserName(), otherUser!);
+        var groupName = GetGroupName(Context.User.GetUsername(), otherUser!);
         await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
         var group = await AddToGroup(groupName);
          
         await Clients.Group(groupName).SendAsync("UpdatedGroup", group);
 
-        var messages = await unitOfWork.MessageRepository.GetMessageThread(Context.User.GetUserName(), otherUser!);
+        var messages = await unitOfWork.MessageRepository.GetMessageThread(Context.User.GetUsername(), otherUser!);
         if (unitOfWork.HasChanges())
             await unitOfWork.Complete();
 
@@ -40,7 +40,7 @@ public class MessageHub(IUnitOfWork unitOfWork, IMapper mapper, IHubContext<Pres
 
     private async Task<Group> AddToGroup(string groupName)
     {
-        var username = Context.User?.GetUserName() ?? throw new Exception("Cannot get username");
+        var username = Context.User?.GetUsername() ?? throw new Exception("Cannot get username");
         var group = await unitOfWork.MessageRepository.GetMessageGroup(groupName);
         var connection = new Connection { ConnectionId = Context.ConnectionId, Username = username };
 
@@ -78,7 +78,7 @@ public class MessageHub(IUnitOfWork unitOfWork, IMapper mapper, IHubContext<Pres
 
     public async Task SendMessage(CreateMessageDto createMessageDto)
     {
-        var username = Context.User?.GetUserName() ?? throw new Exception("could not get user");
+        var username = Context.User?.GetUsername() ?? throw new Exception("could not get user");
         if (createMessageDto.RecipientUsername == username) throw new HubException("you cannot message your self");
 
         var sender = await unitOfWork.UserRepository.GetUserByUsernameAsync(username);
